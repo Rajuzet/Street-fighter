@@ -1,0 +1,8 @@
+{
+  "name": "StreetFighter.Data",
+  "references": ["StreetFighter"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "autoReferenced": true
+}

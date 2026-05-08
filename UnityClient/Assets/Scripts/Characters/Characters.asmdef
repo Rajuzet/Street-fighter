@@ -1,0 +1,8 @@
+{
+  "name": "StreetFighter.Characters",
+  "references": ["StreetFighter"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "autoReferenced": true
+}

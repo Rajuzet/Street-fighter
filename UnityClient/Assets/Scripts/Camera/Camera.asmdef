@@ -1,0 +1,8 @@
+{
+  "name": "StreetFighter.Camera",
+  "references": ["StreetFighter"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "autoReferenced": true
+}

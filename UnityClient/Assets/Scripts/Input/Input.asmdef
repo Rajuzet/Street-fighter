@@ -1,0 +1,8 @@
+{
+  "name": "StreetFighter.Input",
+  "references": ["StreetFighter"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "autoReferenced": true
+}

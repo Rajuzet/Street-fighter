@@ -1,0 +1,8 @@
+{
+  "name": "StreetFighter.Events",
+  "references": ["StreetFighter"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "autoReferenced": true
+}

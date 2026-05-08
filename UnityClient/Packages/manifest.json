@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "com.unity.addressables": "2.6.0",
+    "com.unity.cinemachine": "2.9.0",
+    "com.unity.inputsystem": "1.10.0",
+    "com.unity.collections": "1.5.0",
+    "com.unity.entities": "1.0.0-preview.73"
+  }
+}
