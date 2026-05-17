@@ -5,6 +5,7 @@ namespace StreetFighter.Characters
     /// <summary>
     /// Wraps animation state updates and parameter access for the player character.
     /// Phase 2: Added kick, power, special, and parkour animation triggers.
+    /// Phase 3: Added victory/defeat/death triggers and setter methods.
     /// </summary>
     [RequireComponent(typeof(Animator))]
     public sealed class CharacterAnimationController : MonoBehaviour
@@ -151,6 +152,34 @@ namespace StreetFighter.Characters
         public void SetComboCount(int count)
         {
             animator.SetInteger(AnimationIds.ComboCount, count);
+        }
+
+        // Phase 3: Match end states
+
+        /// <summary>
+        /// Triggers or sets the victory animation state.
+        /// </summary>
+        public void SetVictory(bool active)
+        {
+            if (active)
+                animator.SetTrigger(AnimationIds.VictoryTrigger);
+        }
+
+        /// <summary>
+        /// Triggers or sets the defeat animation state.
+        /// </summary>
+        public void SetDefeat(bool active)
+        {
+            if (active)
+                animator.SetTrigger(AnimationIds.DefeatTrigger);
+        }
+
+        /// <summary>
+        /// Sets the death state in the animator.
+        /// </summary>
+        public void SetDead(bool isDead)
+        {
+            animator.SetBool(AnimationIds.IsDead, isDead);
         }
     }
 }
