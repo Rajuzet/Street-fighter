@@ -2,31 +2,53 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using StreetFighter.Combat;
 using StreetFighter.Data;
 
 namespace StreetFighter.Characters
 {
     /// <summary>
-    /// Phase 2B combo chain executor.
-    /// Maintains the existing CombatSystemManager API expectations:
-    /// - AddMove(CombatMoveData)
-    /// - Playback(CombatMoveData, Action onComplete)
-    /// - Clear()
+    /// Phase 2 combo chain executor with move type validation.
+    /// Validates chaining rules and tracks combo progression.
     /// </summary>
     public sealed class ComboChain
     {
         private readonly List<AttackDefinition> chain = new();
         private int lastComboId;
+        private MoveType lastMoveType = MoveType.None;
 
         public int Count => chain.Count;
+        public IReadOnlyList<AttackDefinition> ChainMoves => chain;
+
+        /// <summary>
+        /// Adds a move to the combo chain if chaining rules allow.
+        /// </summary>
+        public bool TryAddMove(AttackDefinition moveData)
+        {
+            if (moveData == null) return false;
+
+            // Get move type from the attack definition (can be extended with a MoveType field)
+            var moveType = InferMoveType(moveData);
+
+            // Validate chaining
+            if (!MoveTypeRules.CanChainInto(lastMoveType, moveType))
+            {
+                Debug.LogWarning($"Cannot chain {lastMoveType} into {moveType}. Clearing combo.");
+                Clear();
+                lastMoveType = MoveType.None;
+            }
+
+            chain.Add(moveData);
+            lastMoveType = moveType;
+            return true;
+        }
 
         public void AddMove(AttackDefinition moveData)
         {
-            if (moveData == null) return;
-            chain.Add(moveData);
+            TryAddMove(moveData);
         }
 
-        // Overload to preserve any older signatures that used a more generic move type.
+        // Overload to preserve older signatures
         public void AddMove(object moveData)
         {
             if (moveData is AttackDefinition ad)
@@ -35,28 +57,21 @@ namespace StreetFighter.Characters
 
         public IEnumerator Playback(object moveData, Action onComplete)
         {
-            // If caller supplies a move, ensure it is part of the chain.
             if (moveData is AttackDefinition attack)
             {
                 AddMove(attack);
             }
 
-            // Playback all queued moves sequentially.
-            // This preserves existing architecture (CombatSystemManager drives playback coroutines).
             int comboId = ++lastComboId;
 
             for (int i = 0; i < chain.Count; i++)
             {
-                // If Clear() has been called, lastComboId changes and we stop.
                 if (comboId != lastComboId)
                     yield break;
 
                 AttackDefinition move = chain[i];
                 if (move == null) continue;
 
-                // We avoid hard-coded animation wait where possible:
-                // We still need a fallback for now because the current framework.
-                // If animations exist, they should trigger hit windows via HitDetectionSystem.
                 float totalSeconds = move.TotalFrames / 60f;
                 float safe = Mathf.Max(0.01f, totalSeconds);
 
@@ -66,16 +81,36 @@ namespace StreetFighter.Characters
             onComplete?.Invoke();
         }
 
+        public IEnumerator Playback(AttackDefinition moveData, Action onComplete)
+            => Playback((object)moveData, onComplete);
+
         public void Clear()
         {
             chain.Clear();
-            // Invalidate any in-flight coroutine playback.
             lastComboId++;
+            lastMoveType = MoveType.None;
         }
 
-        // Compatibility method: old code path expects the concrete move definition.
-        public IEnumerator Playback(AttackDefinition moveData, Action onComplete)
-            => Playback((object)moveData, onComplete);
+        /// <summary>
+        /// Infers move type from attack properties.
+        /// </summary>
+        private static MoveType InferMoveType(AttackDefinition attack)
+        {
+            // Infer from animation trigger name or properties
+            string trigger = attack.AnimationTrigger?.ToLowerInvariant() ?? "";
+            
+            if (trigger.Contains("kick"))
+                return MoveType.Kick;
+            if (trigger.Contains("power") || trigger.Contains("heavy") || attack.BaseDamage > 20f)
+                return MoveType.Power;
+            if (trigger.Contains("special") || trigger.Contains("spin") || attack.BaseDamage > 30f)
+                return MoveType.Special;
+            if (trigger.Contains("throw"))
+                return MoveType.Throw;
+            if (trigger.Contains("counter"))
+                return MoveType.Counter;
+            
+            return MoveType.Punch; // Default
+        }
     }
 }
-
