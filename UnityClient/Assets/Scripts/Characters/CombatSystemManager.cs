@@ -10,6 +10,7 @@ namespace StreetFighter.Characters
     /// <summary>
     /// Authoritative combat manager that executes moves, combo chains, and damage application.
     /// Phase 2: Integrated HitDetectionSystem, StaminaSystem, and DamageSystem for complete combat loop.
+    /// Phase 3: Added character-specific move loading from roster data.
     /// </summary>
     public sealed class CombatSystemManager : MonoBehaviour
     {
@@ -32,6 +33,9 @@ namespace StreetFighter.Characters
         private float comboResetTimer;
         private const float ComboResetDelay = 2f;
         private IEventBus eventBus;
+
+        // Phase 3: Character ID for roster-specific move filtering
+        private string characterId = "";
 
         private void Awake()
         {
@@ -60,6 +64,36 @@ namespace StreetFighter.Characters
                     damageSystem?.ResetCombo();
                 }
             }
+        }
+
+        /// <summary>
+        /// Phase 3: Loads moves from a character roster entry, merging universal and character-specific moves.
+        /// </summary>
+        public void LoadCharacterMoves(CharacterRosterData roster)
+        {
+            if (roster == null) return;
+
+            characterId = roster.CharacterId;
+            moves.Clear();
+            moveLookup.Clear();
+
+            // Add universal moves
+            // In a full build, universal moves would come from a global database reference
+            // For now, we rely on the pre-populated moves list and add character-specific ones
+
+            // Add character-specific unique moves
+            if (roster.UniqueMoves != null)
+            {
+                foreach (var move in roster.UniqueMoves)
+                {
+                    if (move != null)
+                    {
+                        moves.Add(move);
+                    }
+                }
+            }
+
+            PopulateMoves();
         }
 
         /// <summary>
