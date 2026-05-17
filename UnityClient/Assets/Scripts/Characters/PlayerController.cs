@@ -8,7 +8,8 @@ using CameraNamespace = StreetFighter.Camera;
 namespace StreetFighter.Characters
 {
     /// <summary>
-    /// Drives player movement, sprint, jump and camera-relative translation.
+    /// Drives player movement, sprint, jump, camera-relative translation, and parkour.
+    /// Phase 2: Integrated ParkourSystem for vault, ledge grab, and slide.
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public sealed class PlayerController : MonoBehaviour
@@ -25,16 +26,26 @@ namespace StreetFighter.Characters
         [SerializeField]
         private AudioBank footstepBank = null;
 
+        [Header("Parkour")]
+        [SerializeField]
+        private ParkourSystem parkourSystem = null;
+
         private CharacterController controller;
         private IInputService inputService;
         private Vector3 velocity;
         private bool jumpRequested;
         private const float GroundCastDistance = 0.2f;
 
+        public bool CanMove => (parkourSystem == null || !parkourSystem.IsParkouring) && !IsHitReacting;
+
         private void Awake()
         {
             controller = GetComponent<CharacterController>();
             inputService = ServiceLocator.Resolve<IInputService>();
+
+            // Auto-find parkour system if not assigned
+            if (parkourSystem == null)
+                parkourSystem = GetComponent<ParkourSystem>();
         }
 
         private void Update()
@@ -45,7 +56,12 @@ namespace StreetFighter.Characters
             }
 
             UpdateLook();
-            UpdateMovement();
+
+            if (CanMove)
+            {
+                UpdateMovement();
+            }
+
             UpdateAnimation();
         }
 
@@ -102,11 +118,33 @@ namespace StreetFighter.Characters
             var moveSpeed = new Vector3(velocity.x, 0f, velocity.z).magnitude;
             animationController.SetMovement(moveSpeed, inputService.SprintHeld);
             animationController.SetJumpState(!IsGrounded());
+
+            // Phase 2: Parkour animation states
+            if (parkourSystem != null)
+            {
+                animationController.SetVaulting(false); // Set by ParkourSystem directly
+                animationController.SetLedgeGrabbing(false);
+                animationController.SetSliding(false);
+            }
         }
 
         private bool IsGrounded()
         {
             return Physics.CheckSphere(transform.position + Vector3.down * (controller.height / 2f - controller.radius), controller.radius + GroundCastDistance, LayerMask.GetMask("Default"));
+        }
+
+        private bool IsHitReacting
+        {
+            get
+            {
+                var hitReaction = GetComponent<HitReactionSystem>();
+                return hitReaction != null && hitReaction.IsReacting;
+            }
+        }
+
+        public void ApplyExternalForce(Vector3 force)
+        {
+            velocity += force;
         }
     }
 }
