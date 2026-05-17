@@ -3,6 +3,7 @@ namespace StreetFighter.Characters
     /// <summary>
     /// Animator parameter identifiers used by the player animation controller.
     /// Phase 2: Added kick, power, special, and parkour animation triggers.
+    /// Phase 3: Added victory, defeat, and death states.
     /// </summary>
     public static class AnimationIds
     {
@@ -32,5 +33,10 @@ namespace StreetFighter.Characters
 
         // Phase 2: Combo
         public static readonly int ComboCount = Animator.StringToHash("ComboCount");
+
+        // Phase 3: Match end states
+        public static readonly int VictoryTrigger = Animator.StringToHash("VictoryTrigger");
+        public static readonly int DefeatTrigger = Animator.StringToHash("DefeatTrigger");
+        public static readonly int IsDead = Animator.StringToHash("IsDead");
     }
 }
